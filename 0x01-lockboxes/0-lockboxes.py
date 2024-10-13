@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+This module contains a function that determines if all boxes can be unlocked.
+"""
+
 
 def canUnlockAll(boxes):
     """
@@ -6,7 +10,8 @@ def canUnlockAll(boxes):
 
     Args:
         boxes (list of list of int): A list where each index represents a box,
-        and the list at each index contains the keys to other boxes.
+                                     and the list at each index contains the
+                                     keys to other boxes.
 
     Returns:
         bool: True if all boxes can be unlocked, otherwise False.
