@@ -28,10 +28,10 @@ def validUTF8(data):
             elif (byte >> 3) == 0b11110:
                 num_bytes = 3
             elif (byte >> 7):
-                # If the first bit is set but it doesn't match the patterns above, it's invalid.
+                # If the first bit is set but it doesn't not a match
                 return False
         else:
-            # Check if the current byte is a continuation byte (10xxxxxx).
+            # Check if the curnt byte is a continuation byte (10xxxx).
             if (byte >> 6) != 0b10:
                 return False
             num_bytes -= 1
