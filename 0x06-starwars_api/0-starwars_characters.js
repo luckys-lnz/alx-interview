@@ -25,8 +25,8 @@
  * - Node.js runtime is required.
  */
 
-const request = require("request");
-const API_URL = "https://swapi-api.hbtn.io/api";
+const request = require('request');
+const API_URL = 'https://swapi-api.hbtn.io/api';
 
 // Check if a movie ID is provided as a command-line argument
 if (process.argv.length > 2) {
@@ -37,14 +37,14 @@ if (process.argv.length > 2) {
    * Fetches movie data based on movie ID, then fetches and prints each character's name.
    */
   request(movieUrl, (err, _, body) => {
-    if (err) return console.error("Error fetching movie:", err);
+    if (err) return console.error('Error fetching movie:', err);
 
     let characters;
     try {
       // Parse the response body to access the characters list
       characters = JSON.parse(body).characters;
     } catch (parseErr) {
-      return console.error("Error parsing movie data:", parseErr);
+      return console.error('Error parsing movie data:', parseErr);
     }
 
     // Map character URLs to promises that resolve to character names
@@ -66,11 +66,11 @@ if (process.argv.length > 2) {
 
     // Print all character names once they are fetched in order
     Promise.all(characterPromises)
-      .then((names) => console.log(names.join("\n")))
+      .then((names) => console.log(names.join('\n')))
       .catch((fetchErr) =>
-        console.error("Error fetching character data:", fetchErr)
+        console.error('Error fetching character data:', fetchErr)
       );
   });
 } else {
-  console.log("Usage: ./0-starwars_characters.js <movie_id>");
+  console.log('Usage: ./0-starwars_characters.js <movie_id>');
 }
