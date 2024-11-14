@@ -1,30 +1,5 @@
 #!/usr/bin/node
 
-/**
- * Script to print all characters of a specified Star Wars movie.
- *
- * Usage: ./0-starwars_characters.js <movie_id>
- *
- * This script takes a single command-line argument, the movie ID, and retrieves
- * all character names for that movie from the Star Wars API (https://swapi.dev).
- * The character names are printed in the order they appear in the API's character list.
- *
- * Example:
- * ./0-starwars_characters.js 3
- * Output:
- * Luke Skywalker
- * C-3PO
- * R2-D2
- * Darth Vader
- * ...
- *
- * Dependencies:
- * - request (install with `npm install request`)
- *
- * Environment:
- * - Node.js runtime is required.
- */
-
 const request = require('request');
 const API_URL = 'https://swapi.dev/api';
 
