@@ -26,51 +26,53 @@
  */
 
 const request = require('request');
-const API_URL = 'https://swapi-api.hbtn.io/api';
+const API_URL = 'https://swapi.dev/api';
 
-// Check if a movie ID is provided as a command-line argument
-if (process.argv.length > 2) {
-  const movieId = process.argv[2];
+// Get the movie ID from command-line arguments
+const movieId = process.argv[2];
+
+if (!movieId) {
+  console.error('Usage: ./0-starwars_characters.js <movie_id>');
+  process.exit(1);
+}
+
+// Function to fetch and display the characters of the specified movie
+function getStarWarsCharacters (movieId) {
   const movieUrl = `${API_URL}/films/${movieId}/`;
 
-  /**
-   * Fetches movie data based on movie ID, then fetches and prints each character's name.
-   */
   request(movieUrl, (err, _, body) => {
-    if (err) return console.error('Error fetching movie:', err);
-
-    let characters;
-    try {
-      // Parse the response body to access the characters list
-      characters = JSON.parse(body).characters;
-    } catch (parseErr) {
-      return console.error('Error parsing movie data:', parseErr);
+    if (err) {
+      console.error('Error fetching movie:', err);
+      return;
     }
 
-    // Map character URLs to promises that resolve to character names
-    const characterPromises = characters.map(
-      (url) =>
-        new Promise((resolve, reject) => {
-          request(url, (charErr, __, charBody) => {
-            if (charErr) reject(charErr);
-            else {
-              try {
-                resolve(JSON.parse(charBody).name);
-              } catch (charParseErr) {
-                reject(charParseErr);
-              }
-            }
-          });
-        })
-    );
+    let movieData;
+    try {
+      movieData = JSON.parse(body);
+    } catch (parseErr) {
+      console.error('Error parsing movie data:', parseErr);
+      return;
+    }
 
-    // Print all character names once they are fetched in order
-    Promise.all(characterPromises)
-      .then((names) => console.log(names.join('\n')))
-      .catch((fetchErr) =>
-        console.error('Error fetching character data:', fetchErr)
-      );
+    // Fetch each character's name in order
+    movieData.characters.forEach((characterUrl) => {
+      request(characterUrl, (charErr, __, charBody) => {
+        if (charErr) {
+          console.error('Error fetching character:', charErr);
+          return;
+        }
+
+        let characterData;
+        try {
+          characterData = JSON.parse(charBody);
+          console.log(characterData.name);
+        } catch (charParseErr) {
+          console.error('Error parsing character data:', charParseErr);
+        }
+      });
+    });
   });
-} else {
-  console.log('Usage: ./0-starwars_characters.js <movie_id>');
 }
+
+// Call the function to fetch and display the characters
+getStarWarsCharacters(movieId);
