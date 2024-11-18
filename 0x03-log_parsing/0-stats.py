@@ -1,101 +1,70 @@
 #!/usr/bin/python3
-'''A professional-grade script for parsing HTTP request logs and computing
-metrics.
-'''
-import re
+'''Script to read stdin line by line and compute metrics.'''
 import sys
-from typing import Dict
 
-# Precompiled regex pattern for log parsing
-LOG_PATTERN = re.compile(
-    r'(?P<ip>\S+)\s*'
-    r'-\s*\[(?P<date>[^\]]+)\]\s*'
-    r'"(?P<request>[^"]+)"\s*'
-    r'(?P<status_code>\d{3})\s*'
-    r'(?P<file_size>\d+)'
-)
-
-# Valid HTTP status codes for tracking
+# Possible status codes
 VALID_STATUS_CODES = {'200', '301', '400', '401', '403', '404', '405', '500'}
 
 
-def extract_input(input_line: str) -> Dict[str, int]:
-    '''Extracts the status code and file size from a line of an HTTP request
-    log.
+def print_statistics(total_file_size, status_code_counts):
+    '''Print the current statistics.
 
     Args:
-        input_line (str): A line from the HTTP request log.
-
-    Returns:
-        Dict[str, int]: A dictionary containing the extracted status code and
-        file size.
+        total_file_size (int): Cumulative total of file sizes.
+        status_code_counts (dict): Dictionary with status code counts.
     '''
-    match = LOG_PATTERN.match(input_line)
-    if match:
-        status_code = match.group('status_code')
-        file_size = int(match.group('file_size'))
-        if status_code in VALID_STATUS_CODES:
-            return {'status_code': status_code, 'file_size': file_size}
-    return {'status_code': '0', 'file_size': 0}
+    print(f"File size: {total_file_size}")
+    for code in sorted(status_code_counts.keys()):
+        if status_code_counts[code] > 0:
+            print(f"{code}: {status_code_counts[code]}")
 
 
-def print_statistics(total_file_size: int,
-                     status_codes_stats: Dict[str, int]) -> None:
-    '''Prints the accumulated statistics of the HTTP request logs.
-
-    Args:
-        total_file_size (int): The total file size accumulated.
-        status_codes_stats (Dict[str, int]): A dictionary mapping status codes
-        to their occurrences.
-    '''
-    print(f'File size: {total_file_size}')
-    for status_code in sorted(status_codes_stats.keys()):
-        count = status_codes_stats[status_code]
-        if count > 0:
-            print(f'{status_code}: {count}')
-
-
-def update_metrics(line: str,
-                   total_file_size: int,
-                   status_codes_stats: Dict[str, int]) -> int:
-    '''Updates the total file size and status code statistics from a log line.
+def parse_log_line(line):
+    '''Parse a log line and extract the status code and file size.
 
     Args:
         line (str): A single log line.
-        total_file_size (int): The current total file size.
-        status_codes_stats (Dict[str, int]): The dictionary to update with
-        status code counts.
 
     Returns:
-        int: The new total file size.
+        tuple: A tuple containing the status code and file size, or (None, 0)
+        if the line is invalid.
     '''
-    line_info = extract_input(line)
-    status_code = line_info['status_code']
-    if status_code in status_codes_stats:
-        status_codes_stats[status_code] += 1
-    return total_file_size + line_info['file_size']
+    try:
+        parts = line.split()
+        if len(parts) < 7:
+            return None, 0
+        status_code = parts[-2]
+        file_size = int(parts[-1])
+        if status_code in VALID_STATUS_CODES:
+            return status_code, file_size
+    except (ValueError, IndexError):
+        pass
+    return None, 0
 
 
-def run() -> None:
-    '''Runs the log parser, reading from stdin and printing metrics every
-    10 lines.
-    '''
-    line_count = 0
+def main():
+    '''Main function to read and process stdin.'''
     total_file_size = 0
-    status_codes_stats = {code: 0 for code in VALID_STATUS_CODES}
+    status_code_counts = {code: 0 for code in VALID_STATUS_CODES}
+    line_count = 0
 
     try:
         for line in sys.stdin:
-            total_file_size = update_metrics(
-                line.strip(), total_file_size, status_codes_stats)
+            status_code, file_size = parse_log_line(line.strip())
+            if status_code:
+                status_code_counts[status_code] += 1
+            total_file_size += file_size
             line_count += 1
+
             if line_count % 10 == 0:
-                print_statistics(total_file_size, status_codes_stats)
+                print_statistics(total_file_size, status_code_counts)
 
-    except (KeyboardInterrupt, EOFError):
-        print_statistics(total_file_size, status_codes_stats)
-        sys.exit(0)
+    except KeyboardInterrupt:
+        print_statistics(total_file_size, status_code_counts)
+        raise
+
+    print_statistics(total_file_size, status_code_counts)
 
 
-if __name__ == '__main__':
-    run()
+if __name__ == "__main__":
+    main()
