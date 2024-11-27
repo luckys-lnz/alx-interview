@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+"""coins of different values,"""
+
 def makeChange(coins, total):
     # If total is 0 or less, return 0
     if total <= 0:
